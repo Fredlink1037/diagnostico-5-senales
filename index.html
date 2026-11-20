@@ -74,14 +74,23 @@ details ol{margin:8px 0 0;padding-left:20px;color:var(--muted)}
 .signals p{margin:6px 0 0;font-size:.9rem;color:var(--muted)}
 h2{font-family:var(--display);font-weight:600;font-size:1.15rem;margin:22px 0 8px}
 ol.actions{margin:0;padding-left:20px;display:grid;gap:8px}
-.locked{margin-top:20px;border:1px dashed var(--accent);border-radius:12px;padding:16px;display:grid;gap:10px}
-.locked ul{margin:0;padding-left:18px;color:var(--muted);font-size:.92rem}
 .btns{display:flex;gap:10px;flex-wrap:wrap}
 button,.btn{font:inherit;font-weight:700;border-radius:10px;padding:12px 16px;cursor:pointer;border:1px solid var(--accent);text-decoration:none;display:inline-block}
 .primary{background:var(--accent);color:var(--accent-ink)}
 .ghost{background:transparent;color:var(--accent)}
-.soon{font-size:.75rem;font-weight:700;color:var(--accent);border:1px solid currentColor;border-radius:99px;padding:2px 10px;white-space:nowrap}
-.locked .head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.more{font:inherit;font-size:.88rem;font-weight:600;color:var(--accent);background:none;border:0;padding:4px 0;margin-top:4px;cursor:pointer;text-align:left;display:inline-flex;align-items:center;gap:6px}
+.more::after{content:"→";transition:transform .15s}
+.more:hover::after{transform:translateX(3px)}
+.more:hover{text-decoration:underline}
+.tools{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.tool{font:inherit;font-size:.88rem;font-weight:600;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:99px;padding:8px 14px;cursor:pointer}
+.tool:hover{border-color:var(--accent);color:var(--accent)}
+.connect{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;font:inherit;text-align:left;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:20px;cursor:pointer}
+.connect:hover{border-color:var(--accent)}
+.connect b{display:block;font-size:1rem}
+.connect span{font-size:.88rem;color:var(--muted)}
+.connect i{font-style:normal;font-weight:700;color:var(--accent);white-space:nowrap}
+@media (prefers-reduced-motion: reduce){.more::after{transition:none}}
 .muted{color:var(--muted)}
 select{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:12px}
 dialog{border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);padding:20px;width:min(440px,calc(100% - 32px))}
@@ -112,6 +121,10 @@ footer{font-size:.82rem;color:var(--muted)}
           <label><input type="radio" name="tipo" id="t-personal" value="personal"><span>Es mi cuenta personal</span></label>
         </div>
       </fieldset>
+
+      <button type="button" class="connect" data-feature="conectar">
+        <div><b>Conectar mi Instagram</b><span>Llenamos tus números solos, sin copiar nada.</span></div><i>Conectar →</i>
+      </button>
 
       <details>
         <summary>¿Dónde encuentro estos números?</summary>
@@ -178,25 +191,18 @@ footer{font-size:.82rem;color:var(--muted)}
       <h2>Por dónde empezar</h2>
       <ol class="actions" id="actions"></ol>
 
-      <div class="locked">
-        <div class="head"><strong>Plan completo</strong><span class="soon">Próximamente</span></div>
-        <ul>
-          <li>Conecta tu cuenta y olvídate de copiar números</li>
-          <li>Plan de 30 días hecho para ti, semana por semana</li>
-          <li>Comparación con 3 cuentas parecidas a la tuya</li>
-          <li>Revisión de la calidad de tus seguidores</li>
-          <li>Qué publicación te funcionó mejor y por qué</li>
-          <li>Ideas de contenido cada semana y mejores horas para publicar</li>
-          <li>Tu puntaje mes a mes, con aviso si una señal baja</li>
-          <li>Informe en PDF para guardar o compartir</li>
-        </ul>
-        <p style="margin:0"><strong>Apúntate hoy y tendrás 50 % de descuento el día del lanzamiento.</strong></p>
-        <div class="btns">
-          <button type="button" class="primary" id="cta">Quiero mi 50 % de descuento</button>
-          <button type="button" class="ghost" id="copy">Copiar mi resultado</button>
-        </div>
-        <p id="msg"></p>
+      <div class="tools">
+        <button type="button" class="tool" data-feature="plan30">Ver mi plan de 30 días</button>
+        <button type="button" class="tool" data-feature="ideas">Ideas de contenido para esta semana</button>
       </div>
+
+      <h2>Guarda y sigue tu avance</h2>
+      <div class="tools" style="margin-top:0">
+        <button type="button" class="tool" data-feature="pdf">Descargar informe en PDF</button>
+        <button type="button" class="tool" data-feature="seguimiento">Medir mi puntaje cada mes</button>
+        <button type="button" class="tool" id="copy">Copiar mi resultado</button>
+      </div>
+      <p id="msg"></p>
     </section>
   </div>
 
@@ -205,19 +211,20 @@ footer{font-size:.82rem;color:var(--muted)}
 
 <dialog id="dlg" aria-labelledby="dlg-t">
   <form id="wf" novalidate>
-    <h2 id="dlg-t">Reserva tu 50 % de descuento</h2>
-    <p style="margin:0">El plan completo todavía no está disponible. Déjanos tu correo: te avisamos el día que salga y lo pagas a mitad de precio.</p>
+    <h2 id="dlg-t"></h2>
+    <p style="margin:0" id="dlg-d"></p>
+    <p style="margin:0" class="muted">Estamos terminando esta función. Déjanos tu correo: te avisamos cuando esté lista y la tendrás con <strong style="color:var(--ink)">50 % de descuento</strong>.</p>
     <div class="field"><label for="email">Tu correo</label><input id="email" type="email" autocomplete="email" placeholder="nombre@correo.com"></div>
     <label class="check"><input type="checkbox" id="ok"><span>Acepto que guarden mi correo para avisarme del lanzamiento.</span></label>
     <p id="wmsg" role="alert"></p>
     <div class="btns">
-      <button type="submit" class="primary" id="send">Guardar mi descuento</button>
+      <button type="submit" class="primary" id="send">Avísame</button>
       <button type="button" class="ghost" id="close">Ahora no</button>
     </div>
   </form>
   <div id="done" hidden>
-    <h2>Listo, tu descuento quedó guardado</h2>
-    <p>Te escribiremos a <strong id="done-mail"></strong> cuando salga el plan completo, con tu 50 % de descuento.</p>
+    <h2>Listo, te avisaremos</h2>
+    <p>Te escribiremos a <strong id="done-mail"></strong> cuando esté lista, con tu 50 % de descuento guardado.</p>
     <button type="button" class="primary" id="close2">Volver a mi resultado</button>
   </div>
 </dialog>
@@ -306,6 +313,23 @@ var TIPOS = {
     }
   }
 };
+var FUNCIONES = {
+  conectar: ["Conectar mi Instagram", "Inicia sesión con Instagram y tus números se llenan solos cada vez que quieras medirte."],
+  plan30: ["Tu plan de 30 días", "Qué hacer cada semana durante un mes, armado con tus señales más bajas."],
+  ideas: ["Ideas de contenido para esta semana", "Ideas de publicaciones y reels pensadas para tu tipo de cuenta, cada semana."],
+  seguidores: ["¿Tus seguidores son reales?", "Revisamos la calidad de tus seguidores y te decimos qué parte de tu audiencia está activa."],
+  mejorpost: ["Tu publicación que más funcionó", "Te mostramos qué publicación trajo más mensajes o interacción y por qué funcionó."],
+  comparar: ["Compárate con cuentas parecidas", "Tu puntaje frente a 3 cuentas de tu mismo tipo y tamaño."],
+  horas: ["Tus mejores horas para publicar", "Los días y horas en que tu audiencia está más activa."],
+  pdf: ["Informe en PDF", "Tu diagnóstico completo en un archivo para guardar o compartir."],
+  seguimiento: ["Tu puntaje mes a mes", "Te medimos cada mes y te avisamos si alguna señal baja."]
+};
+var MAS = { demanda: "seguidores", conversion: "mejorpost", costo: "comparar", consistencia: "horas", claridad: "comparar" };
+var MAS_TXT = {
+  seguidores: "¿Mis seguidores son reales?", mejorpost: "Ver qué publicación funcionó mejor",
+  comparar: "Compararme con cuentas parecidas", horas: "Ver mis mejores horas para publicar"
+};
+
 var NOMBRES = {
   demanda: ["Demanda", "¿te están viendo?"],
   conversion: ["Conversión", "¿te escriben y pasa algo?"],
@@ -418,6 +442,10 @@ function pintar(){
     li.querySelector(".pill").textContent = e[0];
     li.querySelector("i").style.width = (sin ? 0 : p) + "%";
     li.querySelector("p").textContent = sin ? "No cuenta en tu puntaje. Complétala cuando tengas los números." : detalle[k];
+    if (MAS[k]) {
+      var m = document.createElement("button"); m.type = "button"; m.className = "more";
+      m.setAttribute("data-feature", MAS[k]); m.textContent = MAS_TXT[MAS[k]]; li.appendChild(m);
+    }
     ul.appendChild(li);
   });
 
@@ -439,13 +467,20 @@ el("f").addEventListener("input", function(e){
 el("f").addEventListener("submit", function(e){ e.preventDefault(); });
 
 var msg = el("msg"), dlg = el("dlg"), wmsg = el("wmsg");
-function abrir(){
+var funcion = "conectar";
+function abrir(f){
+  funcion = FUNCIONES[f] ? f : "conectar";
+  el("dlg-t").textContent = FUNCIONES[funcion][0];
+  el("dlg-d").textContent = FUNCIONES[funcion][1];
   el("wf").hidden = false; el("done").hidden = true; wmsg.textContent = "";
   if (dlg.showModal) dlg.showModal(); else dlg.setAttribute("open", "");
   el("email").focus();
 }
 function cerrar(){ if (dlg.close) dlg.close(); else dlg.removeAttribute("open"); }
-el("cta").addEventListener("click", abrir);
+document.addEventListener("click", function(e){
+  var b = e.target.closest ? e.target.closest("[data-feature]") : null;
+  if (b) abrir(b.getAttribute("data-feature"));
+});
 el("close").addEventListener("click", cerrar);
 el("close2").addEventListener("click", cerrar);
 el("wf").addEventListener("submit", function(e){
@@ -458,7 +493,7 @@ el("wf").addEventListener("submit", function(e){
   fetch(CONFIG.waitlistEndpoint, {
     method: "POST",
     headers: { "Content-Type": "application/json", "Accept": "application/json" },
-    body: JSON.stringify({ email: email, tipo: tipoActual(), puntaje: ultimo ? ultimo.total : null,
+    body: JSON.stringify({ email: email, funcion: funcion, tipo: tipoActual(), puntaje: ultimo ? ultimo.total : null,
                            descuento: CONFIG.descuento, fecha: new Date().toISOString() })
   }).then(function(res){
     if (!res.ok) throw new Error(res.status);
