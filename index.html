@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Diagnóstico 5 Señales</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: una columna en móvil; preguntas a la izquierda y resultado fijo a la derecha en pantallas anchas. */
+:root{
+  --bg:#f3f1f6; --surface:#ffffff; --ink:#1c1630; --muted:#665f7a; --line:#dcd7e6;
+  --accent:#6a2bd9; --accent-ink:#ffffff;
+  --good:#17804f; --warn:#a86400; --bad:#c22b3c;
+  --display:"Bricolage Grotesque","Trebuchet MS",sans-serif;
+  --body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#14111f; --surface:#1e1a2d; --ink:#f1eef8; --muted:#a9a2bd; --line:#352f49;
+    --accent:#b08cff; --accent-ink:#17102b;
+    --good:#4fd093; --warn:#f0b24a; --bad:#ff7a88;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#14111f; --surface:#1e1a2d; --ink:#f1eef8; --muted:#a9a2bd; --line:#352f49;
+  --accent:#b08cff; --accent-ink:#17102b;
+  --good:#4fd093; --warn:#f0b24a; --bad:#ff7a88;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.5}
+.wrap{max-width:1080px;margin:0 auto;padding:24px 16px 56px;display:grid;gap:24px}
+header h1{font-family:var(--display);font-weight:800;font-size:clamp(1.8rem,6.5vw,2.7rem);line-height:1.05;margin:0 0 8px;text-wrap:balance}
+header p{margin:0;color:var(--muted);max-width:58ch}
+.cols{display:grid;gap:24px}
+@media (min-width:860px){.cols{grid-template-columns:1fr 1fr;align-items:start}.report{position:sticky;top:16px}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px}
+fieldset{border:0;padding:0;margin:0 0 24px;display:grid;gap:12px;min-width:0}
+fieldset[hidden],.field[hidden]{display:none}
+legend{font-family:var(--display);font-weight:600;font-size:1.15rem;padding:0;margin-bottom:10px}
+legend small{display:block;font-family:var(--body);font-weight:400;font-size:.9rem;color:var(--muted)}
+.types{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.types label{display:block;cursor:pointer}
+.types input{position:absolute;opacity:0}
+.types span{display:flex;align-items:center;min-height:56px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-weight:600;font-size:.95rem;line-height:1.25;background:var(--bg)}
+.types input:checked + span{border-color:var(--accent);background:var(--accent);color:var(--accent-ink)}
+.types input:focus-visible + span{outline:3px solid var(--accent);outline-offset:2px}
+.field{display:grid;gap:4px}
+.field label{font-size:.95rem;font-weight:600}
+.field small{color:var(--muted);font-size:.85rem}
+.field input{width:100%;font:inherit;font-variant-numeric:tabular-nums;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:12px}
+.field input:focus-visible,button:focus-visible,summary:focus-visible,a:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.check{display:flex;gap:12px;align-items:flex-start;font-size:1rem;padding:6px 0;cursor:pointer}
+.check input{width:22px;height:22px;margin-top:2px;accent-color:var(--accent);flex:none}
+details{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:20px;font-size:.92rem}
+summary{cursor:pointer;font-weight:700;color:var(--accent)}
+details ol{margin:8px 0 0;padding-left:20px;color:var(--muted)}
+.example{display:inline-block;font-size:.8rem;font-weight:600;color:var(--warn);border:1px solid currentColor;border-radius:99px;padding:2px 10px;margin-bottom:14px}
+.total{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.total b{font-family:var(--display);font-weight:800;font-size:3.4rem;line-height:1;font-variant-numeric:tabular-nums}
+.total span{color:var(--muted)}
+#verdict{margin:8px 0 0;font-weight:600}
+.signals{list-style:none;padding:0;margin:18px 0 0;display:grid;gap:14px}
+.signals .row{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}
+.signals .name{font-weight:700;color:var(--ink)}
+.signals .q{font-weight:400;color:var(--muted)}
+.pill{font-size:.78rem;font-weight:700;border-radius:99px;padding:2px 10px;border:1px solid currentColor;white-space:nowrap}
+.good{color:var(--good)}.warn{color:var(--warn)}.bad{color:var(--bad)}
+.bar{height:8px;border-radius:99px;background:var(--line);overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;border-radius:99px;background:currentColor}
+.signals p{margin:6px 0 0;font-size:.9rem;color:var(--muted)}
+h2{font-family:var(--display);font-weight:600;font-size:1.15rem;margin:22px 0 8px}
+ol.actions{margin:0;padding-left:20px;display:grid;gap:8px}
+.locked{margin-top:20px;border:1px dashed var(--accent);border-radius:12px;padding:16px;display:grid;gap:10px}
+.locked ul{margin:0;padding-left:18px;color:var(--muted);font-size:.92rem}
+.btns{display:flex;gap:10px;flex-wrap:wrap}
+button,.btn{font:inherit;font-weight:700;border-radius:10px;padding:12px 16px;cursor:pointer;border:1px solid var(--accent);text-decoration:none;display:inline-block}
+.primary{background:var(--accent);color:var(--accent-ink)}
+.ghost{background:transparent;color:var(--accent)}
+.soon{font-size:.75rem;font-weight:700;color:var(--accent);border:1px solid currentColor;border-radius:99px;padding:2px 10px;white-space:nowrap}
+.locked .head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.muted{color:var(--muted)}
+select{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:12px}
+dialog{border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);padding:20px;width:min(440px,calc(100% - 32px))}
+dialog::backdrop{background:rgba(10,6,25,.6)}
+dialog h2{margin-top:0}
+dialog form{display:grid;gap:12px}
+#wmsg{font-size:.9rem;margin:0;min-height:1.3em;color:var(--bad)}
+#msg{font-size:.88rem;color:var(--muted);min-height:1.3em;margin:0}
+footer{font-size:.82rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>¿Qué tan bien va tu Instagram?</h1>
+    <p>Responde unas preguntas y recibe tu puntaje en 2 minutos, con lo primero que te conviene mejorar. No necesitas saber de marketing y tus respuestas no salen de este dispositivo.</p>
+  </header>
+
+  <div class="cols">
+    <form class="card" id="f" autocomplete="off">
+      <fieldset>
+        <legend>¿Para qué usas tu Instagram? <small>Las preguntas se adaptan a tu respuesta.</small></legend>
+        <div class="types" id="types">
+          <label><input type="radio" name="tipo" id="t-negocio" value="negocio" checked><span>Vendo productos o servicios</span></label>
+          <label><input type="radio" name="tipo" id="t-creador" value="creador"><span>Creo contenido</span></label>
+          <label><input type="radio" name="tipo" id="t-profesional" value="profesional"><span>Muestro mi trabajo o profesión</span></label>
+          <label><input type="radio" name="tipo" id="t-personal" value="personal"><span>Es mi cuenta personal</span></label>
+        </div>
+      </fieldset>
+
+      <details>
+        <summary>¿Dónde encuentro estos números?</summary>
+        <ol>
+          <li>Abre tu perfil de Instagram y toca el panel para profesionales o «Estadísticas».</li>
+          <li>Elige el periodo «Últimos 30 días».</li>
+          <li>Copia los números que te pedimos aquí. Si alguno no te aparece, déjalo vacío.</li>
+        </ol>
+        <p style="margin:8px 0 0;color:var(--muted)">Si tu cuenta es personal no verás estadísticas. Puedes responder con lo que sí ves o cambiarla gratis a cuenta profesional desde la configuración.</p>
+      </details>
+
+      <span class="example" id="exTag">Números de ejemplo: cámbialos por los tuyos</span>
+
+      <fieldset data-senal="demanda">
+        <legend>Demanda <small>¿Te están viendo y les interesa?</small></legend>
+        <div class="field"><label for="seguidores">¿Cuántos seguidores tienes?</label><input id="seguidores" type="number" min="0" inputmode="numeric" value="2400"></div>
+        <div class="field"><label for="nuevos">¿Cuántos seguidores nuevos ganaste este mes?</label><input id="nuevos" type="number" min="0" inputmode="numeric" value="35"><small>Un aproximado sirve.</small></div>
+        <div class="field"><label for="interacciones">¿Cuántas reacciones recibe una publicación tuya normal?</label><input id="interacciones" type="number" min="0" inputmode="numeric" value="28"><small>Suma me gusta, comentarios, guardados y compartidos.</small></div>
+        <div class="field"><label for="alcance">¿A cuántas cuentas llegaste en 30 días? (opcional)</label><input id="alcance" type="number" min="0" inputmode="numeric" value="3100"><small>En estadísticas aparece como «Cuentas alcanzadas».</small></div>
+      </fieldset>
+
+      <fieldset data-senal="conversion">
+        <legend>Conversión <small id="q-conversion"></small></legend>
+        <p class="muted" style="margin:0;font-size:.88rem">Si no tienes estos números, deja los tres vacíos y esta señal no contará en tu puntaje.</p>
+        <div class="field"><label for="visitas">¿Cuántas visitas tuvo tu perfil en 30 días?</label><input id="visitas" type="number" min="0" inputmode="numeric" value="900"></div>
+        <div class="field"><label for="consultas" id="l-consultas"></label><input id="consultas" type="number" min="0" inputmode="numeric" value="22"></div>
+        <div class="field"><label for="ventas" id="l-ventas"></label><input id="ventas" type="number" min="0" inputmode="numeric" value="4"></div>
+      </fieldset>
+
+      <fieldset data-senal="costo">
+        <legend>Costo <small>¿Cuánto pagas por cada persona que te escribe?</small></legend>
+        <div class="field"><label for="gasto">¿Cuánto invertiste en publicidad este mes? (pesos colombianos)</label><input id="gasto" type="number" min="0" inputmode="numeric" value="150000"><small>Si no pagas publicidad, escribe 0.</small></div>
+      </fieldset>
+
+      <fieldset data-senal="consistencia">
+        <legend>Consistencia <small>¿Publicas con ritmo?</small></legend>
+        <div class="field"><label for="posts">¿Cuántas publicaciones o reels subes por semana?</label><input id="posts" type="number" min="0" max="50" step="0.5" inputmode="decimal" value="1.5"></div>
+        <div class="field"><label for="historias">¿Cuántos días a la semana subes historias?</label><input id="historias" type="number" min="0" max="7" inputmode="numeric" value="2"></div>
+        <div class="field"><label for="formato">¿Qué publicas más?</label>
+          <select id="formato">
+            <option value="mixto">Un poco de todo</option>
+            <option value="reels">Sobre todo reels</option>
+            <option value="carruseles">Sobre todo carruseles (varias fotos)</option>
+            <option value="fotos" selected>Sobre todo fotos sueltas</option>
+          </select></div>
+      </fieldset>
+
+      <fieldset data-senal="claridad" style="margin-bottom:0">
+        <legend>Claridad <small>¿Quien llega a tu perfil entiende quién eres en 5 segundos?</small></legend>
+        <label class="check"><input type="checkbox" id="c1" checked><span id="x1"></span></label>
+        <label class="check"><input type="checkbox" id="c2" checked><span id="x2"></span></label>
+        <label class="check"><input type="checkbox" id="c3"><span id="x3"></span></label>
+        <label class="check"><input type="checkbox" id="c4"><span id="x4"></span></label>
+        <label class="check"><input type="checkbox" id="c5" checked><span id="x5"></span></label>
+        <label class="check"><input type="checkbox" id="c6"><span id="x6"></span></label>
+      </fieldset>
+    </form>
+
+    <section class="card report" aria-live="polite">
+      <div class="total"><b id="total">0</b><span>de 100</span></div>
+      <p id="verdict"></p>
+      <ul class="signals" id="signals"></ul>
+
+      <h2>Por dónde empezar</h2>
+      <ol class="actions" id="actions"></ol>
+
+      <div class="locked">
+        <div class="head"><strong>Plan completo</strong><span class="soon">Próximamente</span></div>
+        <ul>
+          <li>Conecta tu cuenta y olvídate de copiar números</li>
+          <li>Plan de 30 días hecho para ti, semana por semana</li>
+          <li>Comparación con 3 cuentas parecidas a la tuya</li>
+          <li>Revisión de la calidad de tus seguidores</li>
+          <li>Qué publicación te funcionó mejor y por qué</li>
+          <li>Ideas de contenido cada semana y mejores horas para publicar</li>
+          <li>Tu puntaje mes a mes, con aviso si una señal baja</li>
+          <li>Informe en PDF para guardar o compartir</li>
+        </ul>
+        <p style="margin:0"><strong>Apúntate hoy y tendrás 50 % de descuento el día del lanzamiento.</strong></p>
+        <div class="btns">
+          <button type="button" class="primary" id="cta">Quiero mi 50 % de descuento</button>
+          <button type="button" class="ghost" id="copy">Copiar mi resultado</button>
+        </div>
+        <p id="msg"></p>
+      </div>
+    </section>
+  </div>
+
+  <footer>El puntaje es una guía para saber por dónde empezar. Los rangos de referencia se pueden ajustar y un puntaje alto no garantiza resultados.</footer>
+</div>
+
+<dialog id="dlg" aria-labelledby="dlg-t">
+  <form id="wf" novalidate>
+    <h2 id="dlg-t">Reserva tu 50 % de descuento</h2>
+    <p style="margin:0">El plan completo todavía no está disponible. Déjanos tu correo: te avisamos el día que salga y lo pagas a mitad de precio.</p>
+    <div class="field"><label for="email">Tu correo</label><input id="email" type="email" autocomplete="email" placeholder="nombre@correo.com"></div>
+    <label class="check"><input type="checkbox" id="ok"><span>Acepto que guarden mi correo para avisarme del lanzamiento.</span></label>
+    <p id="wmsg" role="alert"></p>
+    <div class="btns">
+      <button type="submit" class="primary" id="send">Guardar mi descuento</button>
+      <button type="button" class="ghost" id="close">Ahora no</button>
+    </div>
+  </form>
+  <div id="done" hidden>
+    <h2>Listo, tu descuento quedó guardado</h2>
+    <p>Te escribiremos a <strong id="done-mail"></strong> cuando salga el plan completo, con tu 50 % de descuento.</p>
+    <button type="button" class="primary" id="close2">Volver a mi resultado</button>
+  </div>
+</dialog>
+
+<script>
+/* ====== CONFIGURACIÓN: edita solo este bloque ====== */
+var CONFIG = {
+  // Dirección donde se guardan los correos de la lista de espera (por ejemplo, la de tu
+  // formulario en Formspree: "https://formspree.io/f/XXXXXXXX"). Vacío = no guarda nada.
+  waitlistEndpoint: "https://formspree.io/f/mvkabzwd",
+  descuento: 50,
+  // Rangos de referencia (el valor que equivale a 100 puntos)
+  ref: {
+    alcanceSobreSeguidores: 2.0,   // alcance mensual = 2 veces los seguidores
+    crecimientoMensual: 0.03,      // 3 % de seguidores nuevos al mes
+    interaccionMin: 0.002, interaccionMax: 0.03, // 0,2 % a 3 % por publicación
+    consultasSobreVisitas: 0.08,   // 8 % de las visitas escriben
+    ventasSobreConsultas: 0.35,    // 35 % de los mensajes terminan en algo concreto
+    costoConsultaBueno: 2000, costoConsultaMalo: 40000, // pesos por consulta
+    postsSemana: 4, diasHistorias: 5,
+    interaccionPromedio: 0.005     // promedio general por seguidor (Socialinsider, datos 2025)
+  }
+};
+/* =================================================== */
+
+var CHECK5 = "Tu foto de perfil se reconoce en tamaño pequeño";
+var TIPOS = {
+  negocio: {
+    senales: ["demanda", "conversion", "costo", "consistencia", "claridad"],
+    qConversion: "¿El interés se vuelve mensajes y ventas?",
+    consultas: "¿Cuántas personas te escribieron para preguntar o comprar?",
+    ventas: "¿Cuántas ventas te llegaron desde Instagram?",
+    resultado: "de quienes escriben termina comprando",
+    checks: ["Tu biografía dice qué vendes y para quién", "Aparece tu ciudad o zona de entrega",
+      "Hay un enlace o botón directo a WhatsApp o a tu tienda", "Tus historias destacadas muestran catálogo, precios o cómo comprar",
+      CHECK5, "Tienes una publicación fijada que explica tu oferta"],
+    acciones: {
+      demanda: "Sube 2 reels por semana mostrando tu producto en uso y pide que lo compartan. Primero hay que lograr que más gente te vea.",
+      conversion: "Responde cada mensaje en menos de 15 minutos con precio, forma de pago y el siguiente paso. Guarda respuestas rápidas en WhatsApp Business.",
+      costo: "Pausa los anuncios que no traen mensajes y prueba uno solo, con tu producto estrella y botón directo a WhatsApp.",
+      consistencia: "Elige 3 días fijos para publicar y graba todo el contenido de la semana en una sola sesión.",
+      claridad: "Reescribe tu biografía: qué vendes, para quién, en qué ciudad, y un enlace directo a WhatsApp."
+    }
+  },
+  creador: {
+    senales: ["demanda", "conversion", "consistencia", "claridad"],
+    qConversion: "¿Tu contenido te trae mensajes y oportunidades?",
+    consultas: "¿Cuántos mensajes o propuestas recibiste de seguidores o marcas?",
+    ventas: "¿Cuántas colaboraciones u oportunidades se concretaron?",
+    resultado: "de los mensajes termina en una oportunidad concreta",
+    checks: ["Tu biografía dice de qué trata tu contenido", "Se entiende a quién le hablas",
+      "Hay un enlace a tus otros canales o a tu contacto", "Tus historias destacadas ordenan tus mejores temas",
+      CHECK5, "Tienes una publicación fijada que te presenta"],
+    acciones: {
+      demanda: "Repite el formato de tu publicación más compartida, con otro tema, 2 veces por semana. Lo que más se comparte es lo que más crece.",
+      conversion: "Termina cada publicación con una invitación clara: que te escriban, que guarden o que te sigan. Y pon tu contacto para marcas en la biografía.",
+      consistencia: "Elige 3 días fijos para publicar y graba varias piezas en una sola sesión.",
+      claridad: "Reescribe tu biografía en una línea: de qué hablas y para quién. Fija una publicación que te presente."
+    }
+  },
+  profesional: {
+    senales: ["demanda", "conversion", "consistencia", "claridad"],
+    qConversion: "¿Tu perfil te trae clientes o propuestas?",
+    consultas: "¿Cuántas personas te escribieron por tu trabajo?",
+    ventas: "¿Cuántos clientes, citas o proyectos salieron de ahí?",
+    resultado: "de quienes escriben termina en cliente o proyecto",
+    checks: ["Tu biografía dice qué haces y a quién ayudas", "Aparece tu ciudad o si atiendes en línea",
+      "Hay un enlace para escribirte o agendar", "Tus historias destacadas muestran tu trabajo y testimonios",
+      CHECK5, "Tienes una publicación fijada que te presenta"],
+    acciones: {
+      demanda: "Publica cada semana un caso real: el problema, lo que hiciste y el resultado. Es el contenido que más se comparte en perfiles profesionales.",
+      conversion: "Cierra cada publicación diciendo cómo trabajar contigo y responde los mensajes el mismo día.",
+      consistencia: "Elige 2 o 3 días fijos para publicar y prepara el contenido del mes en una tarde.",
+      claridad: "Reescribe tu biografía: qué haces, a quién ayudas y un enlace para escribirte o agendar."
+    }
+  },
+  personal: {
+    senales: ["demanda", "consistencia", "claridad"],
+    checks: ["Tu biografía cuenta algo de ti", "Tu nombre aparece completo y es fácil de buscar",
+      "Tienes un enlace o una forma de contacto", "Tus historias destacadas están ordenadas por tema",
+      CHECK5, "Tienes fijadas tus publicaciones favoritas"],
+    acciones: {
+      demanda: "Comenta y responde en las cuentas que sigues: la interacción que das es la que vuelve. Y prueba subir un reel corto esta semana.",
+      consistencia: "Ponte una meta sencilla: una publicación y tres días de historias por semana.",
+      claridad: "Completa tu biografía con dos o tres cosas que te definan y ordena tus historias destacadas."
+    }
+  }
+};
+var NOMBRES = {
+  demanda: ["Demanda", "¿te están viendo?"],
+  conversion: ["Conversión", "¿te escriben y pasa algo?"],
+  costo: ["Costo", "¿cuánto pagas por mensaje?"],
+  consistencia: ["Consistencia", "¿publicas con ritmo?"],
+  claridad: ["Claridad", "¿se entiende tu perfil?"]
+};
+
+function clamp(x){ return Math.max(0, Math.min(100, x)); }
+function lin(v, lo, hi){ return clamp((v - lo) / (hi - lo) * 100); }
+function ratio(a, b){ return b > 0 ? a / b : 0; }
+
+// d.alcance puede ser null (no lo sabe): esa parte no cuenta en Demanda.
+function calcular(d, ref, activas){
+  var partes = [
+    lin(ratio(d.nuevos, d.seguidores), 0, ref.crecimientoMensual),
+    lin(ratio(d.interacciones, d.seguidores), ref.interaccionMin, ref.interaccionMax)
+  ];
+  if (d.alcance !== null) partes.push(lin(ratio(d.alcance, d.seguidores), 0.2, ref.alcanceSobreSeguidores));
+  var demanda = partes.reduce(function(a, b){ return a + b; }, 0) / partes.length;
+
+  // Sin datos de mensajes ni visitas: la señal no cuenta (null).
+  var conversion = d.sinConversion ? null : (
+    lin(ratio(d.consultas, d.visitas), 0, ref.consultasSobreVisitas) +
+    lin(ratio(d.ventas, d.consultas), 0, ref.ventasSobreConsultas)
+  ) / 2;
+
+  var costoConsulta = null, costo;
+  if (d.sinConversion) { costo = null; }  // sin saber cuántos escriben no se puede calcular
+  else if (d.gasto <= 0) { costo = d.consultas > 0 ? 60 : 30; }
+  else if (d.consultas <= 0) { costo = 5; }
+  else {
+    costoConsulta = d.gasto / d.consultas;
+    costo = clamp((Math.log(ref.costoConsultaMalo) - Math.log(costoConsulta)) /
+                  (Math.log(ref.costoConsultaMalo) - Math.log(ref.costoConsultaBueno)) * 100);
+  }
+
+  // Carruseles y reels reciben más interacción que las fotos sueltas (Socialinsider, datos 2025).
+  var formato = { mixto: 100, reels: 85, carruseles: 85, fotos: 50 }[d.formato || "mixto"];
+  var consistencia = 0.5 * lin(d.posts, 0, ref.postsSemana) + 0.3 * lin(d.historias, 0, ref.diasHistorias) + 0.2 * formato;
+  var claridad = d.checks / 6 * 100;
+
+  var todas = { demanda: demanda, costo: costo, conversion: conversion, consistencia: consistencia, claridad: claridad };
+  var s = {}, total = 0, n = 0;
+  activas.forEach(function(k){
+    if (todas[k] === null) { s[k] = null; return; }
+    s[k] = Math.round(todas[k]); total += s[k]; n++;
+  });
+  return { senales: s, total: n ? Math.round(total / n) : 0, costoConsulta: costoConsulta,
+           interaccion: ratio(d.interacciones, d.seguidores) };
+}
+
+function estado(p){ return p >= 70 ? ["Va bien", "good"] : p >= 40 ? ["Puede mejorar", "warn"] : ["Necesita atención", "bad"]; }
+function el(id){ return document.getElementById(id); }
+function num(id){ var v = parseFloat(el(id).value); return isFinite(v) && v > 0 ? v : 0; }
+function pesos(n){ return "$" + Math.round(n).toLocaleString("es-CO"); }
+function tipoActual(){ return document.querySelector('input[name="tipo"]:checked').value; }
+
+function leer(){
+  var checks = 0;
+  for (var i = 1; i <= 6; i++) if (el("c" + i).checked) checks++;
+  var vacio = function(id){ return el(id).value.trim() === ""; };
+  return { sinConversion: vacio("visitas") && vacio("consultas") && vacio("ventas"), formato: el("formato").value,
+    seguidores: num("seguidores"), alcance: el("alcance").value.trim() === "" ? null : num("alcance"),
+    nuevos: num("nuevos"), interacciones: num("interacciones"), visitas: num("visitas"), consultas: num("consultas"),
+    ventas: num("ventas"), gasto: num("gasto"), posts: num("posts"), historias: num("historias"), checks: checks };
+}
+
+function adaptar(){
+  var t = TIPOS[tipoActual()];
+  document.querySelectorAll("fieldset[data-senal]").forEach(function(fs){
+    fs.hidden = t.senales.indexOf(fs.getAttribute("data-senal")) < 0;
+  });
+  if (t.consultas){
+    el("q-conversion").textContent = t.qConversion;
+    el("l-consultas").textContent = t.consultas;
+    el("l-ventas").textContent = t.ventas;
+  }
+  for (var i = 1; i <= 6; i++) el("x" + i).textContent = t.checks[i - 1];
+}
+
+var ultimo = null;
+function pintar(){
+  var t = TIPOS[tipoActual()], d = leer(), r = calcular(d, CONFIG.ref, t.senales); ultimo = r;
+  el("total").textContent = r.total;
+  el("verdict").textContent =
+    r.total >= 70 ? "Vas muy bien. Con un par de ajustes tu cuenta puede dar más." :
+    r.total >= 40 ? "Vas por buen camino y hay cosas sencillas que puedes mejorar." :
+                    "Hay mucho por ganar. Empieza por un solo cambio esta semana.";
+
+  var detalle = {
+    demanda: d.seguidores > 0 ? "De cada 100 seguidores, " + (r.interaccion * 100).toFixed(1).replace(".", ",") + " reaccionan a una publicación tuya. El promedio general es 0,5." +
+      (r.interaccion >= CONFIG.ref.interaccionPromedio ? " Estás por encima." : " Estás por debajo.") : "Escribe cuántos seguidores tienes para calcularlo.",
+    costo: r.costoConsulta ? "Cada persona que te escribe te cuesta " + pesos(r.costoConsulta) + "." :
+           (d.gasto > 0 ? "Pagas publicidad y todavía no te escriben." : "No pagas publicidad: hoy tu inversión es tu tiempo."),
+    conversion: d.consultas > 0 ? Math.round(ratio(d.ventas, d.consultas) * 100) + " % " + (t.resultado || "") + "." : "Este mes no registras mensajes.",
+    consistencia: String(d.posts).replace(".", ",") + " publicaciones por semana e historias " + d.historias + " días." +
+      (d.formato === "fotos" ? " Los carruseles y los reels suelen recibir más interacción que las fotos sueltas." : ""),
+    claridad: "Cumples " + d.checks + " de 6 puntos de un perfil claro."
+  };
+
+  var ul = el("signals"); ul.textContent = "";
+  t.senales.forEach(function(k){
+    var p = r.senales[k], sin = p === null, e = sin ? ["Sin datos", "muted"] : estado(p), li = document.createElement("li");
+    li.className = e[1];
+    li.innerHTML = '<div class="row"><span class="name"></span><span class="pill"></span></div><div class="bar"><i></i></div><p></p>';
+    var name = li.querySelector(".name");
+    name.textContent = NOMBRES[k][0] + " " + (sin ? "" : p + " ");
+    var q = document.createElement("span"); q.className = "q"; q.textContent = NOMBRES[k][1]; name.appendChild(q);
+    li.querySelector(".pill").textContent = e[0];
+    li.querySelector("i").style.width = (sin ? 0 : p) + "%";
+    li.querySelector("p").textContent = sin ? "No cuenta en tu puntaje. Complétala cuando tengas los números." : detalle[k];
+    ul.appendChild(li);
+  });
+
+  var ol = el("actions"); ol.textContent = "";
+  var debiles = t.senales.filter(function(k){ return r.senales[k] !== null; }).sort(function(a, b){ return r.senales[a] - r.senales[b]; })
+                 .filter(function(k){ return r.senales[k] < 70; }).slice(0, 3);
+  if (!debiles.length){ var li0 = document.createElement("li"); li0.textContent = "Todas tus señales van bien. Mantén el ritmo y prueba un formato nuevo este mes."; ol.appendChild(li0); }
+  debiles.forEach(function(k){
+    var li = document.createElement("li"), b = document.createElement("strong");
+    b.textContent = NOMBRES[k][0] + ": "; li.appendChild(b);
+    li.appendChild(document.createTextNode(t.acciones[k])); ol.appendChild(li);
+  });
+}
+
+el("f").addEventListener("input", function(e){
+  if (e.target.name === "tipo") adaptar(); else el("exTag").hidden = true;
+  pintar();
+});
+el("f").addEventListener("submit", function(e){ e.preventDefault(); });
+
+var msg = el("msg"), dlg = el("dlg"), wmsg = el("wmsg");
+function abrir(){
+  el("wf").hidden = false; el("done").hidden = true; wmsg.textContent = "";
+  if (dlg.showModal) dlg.showModal(); else dlg.setAttribute("open", "");
+  el("email").focus();
+}
+function cerrar(){ if (dlg.close) dlg.close(); else dlg.removeAttribute("open"); }
+el("cta").addEventListener("click", abrir);
+el("close").addEventListener("click", cerrar);
+el("close2").addEventListener("click", cerrar);
+el("wf").addEventListener("submit", function(e){
+  e.preventDefault();
+  var email = el("email").value.trim();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { wmsg.textContent = "Revisa tu correo: parece que le falta algo."; return; }
+  if (!el("ok").checked) { wmsg.textContent = "Marca la casilla para poder guardar tu correo."; return; }
+  if (!CONFIG.waitlistEndpoint) { wmsg.textContent = "La lista de espera todavía no está conectada, así que tu correo no se guardó. (Administrador: falta CONFIG.waitlistEndpoint.)"; return; }
+  var btn = el("send"); btn.disabled = true; wmsg.textContent = "";
+  fetch(CONFIG.waitlistEndpoint, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Accept": "application/json" },
+    body: JSON.stringify({ email: email, tipo: tipoActual(), puntaje: ultimo ? ultimo.total : null,
+                           descuento: CONFIG.descuento, fecha: new Date().toISOString() })
+  }).then(function(res){
+    if (!res.ok) throw new Error(res.status);
+    el("done-mail").textContent = email; el("wf").hidden = true; el("done").hidden = false;
+  }).catch(function(){
+    wmsg.textContent = "No pudimos guardar tu correo. Revisa tu conexión e intenta de nuevo.";
+  }).then(function(){ btn.disabled = false; });
+});
+el("copy").addEventListener("click", function(){
+  if (!ultimo) return;
+  var txt = "Mi Instagram sacó " + ultimo.total + " de 100 en el Diagnóstico 5 Señales: " +
+    Object.keys(ultimo.senales).filter(function(k){ return ultimo.senales[k] !== null; }).map(function(k){ return NOMBRES[k][0] + " " + ultimo.senales[k]; }).join(", ") + ". ¿Cuánto saca el tuyo?";
+  try { navigator.clipboard.writeText(txt).then(function(){ msg.textContent = "Resultado copiado. Pégalo donde quieras compartirlo."; },
+        function(){ msg.textContent = txt; }); } catch (err) { msg.textContent = txt; }
+});
+adaptar(); pintar();
+</script>
+</body>
+</html>
