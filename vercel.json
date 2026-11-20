@@ -1,0 +1,9 @@
+{
+  "redirects": [
+    { "source": "/ig", "destination": "/?utm_source=instagram&utm_medium=dm", "permanent": false },
+    { "source": "/bio", "destination": "/?utm_source=instagram&utm_medium=bio", "permanent": false },
+    { "source": "/reel", "destination": "/?utm_source=instagram&utm_medium=reel", "permanent": false },
+    { "source": "/wa", "destination": "/?utm_source=whatsapp&utm_medium=mensaje", "permanent": false },
+    { "source": "/taller", "destination": "/?utm_source=taller&utm_medium=presencial", "permanent": false }
+  ]
+}
